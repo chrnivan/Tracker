@@ -7,7 +7,7 @@
 
 import UIKit
 
-class NewHabitViewController: UIViewController {
+final class NewHabitViewController: UIViewController {
     //MARK: - Delegate
     weak var scheduleViewControllerDelegate: ScheduleViewControllerDelegate?
     weak var trackerCreateViewControllerDelegate: TrackerCreateViewControllerDelegate?
@@ -116,6 +116,7 @@ class NewHabitViewController: UIViewController {
         setupConstraints()
         categoryOrScheduleTableView.delegate = self
         categoryOrScheduleTableView.dataSource = self
+        self.addTapGestureToHideKeyboard()
     }
     //MARK: - Private Methods
     private func setupConstraints() {

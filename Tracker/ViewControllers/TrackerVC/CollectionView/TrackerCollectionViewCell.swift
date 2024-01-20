@@ -7,7 +7,7 @@
 
 import UIKit
 
-class TrackerCollectionViewCell: UICollectionViewCell {
+final class TrackerCollectionViewCell: UICollectionViewCell {
     //MARK: - Delegate:
     weak var delegate: TrackerCellDelegate?
     //MARK: - Identifer:

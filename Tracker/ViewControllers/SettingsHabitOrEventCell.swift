@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SettingsHabitOrEventCell: UITableViewCell {
+final class SettingsHabitOrEventCell: UITableViewCell {
     //MARK: - Identifer
     static let cellIdentifer = "cell"
     //MARK: - UI

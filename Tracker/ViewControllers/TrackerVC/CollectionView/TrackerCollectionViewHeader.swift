@@ -7,7 +7,7 @@
 
 import UIKit
 
-class TrackerCollectionViewHeader: UICollectionReusableView {
+final class TrackerCollectionViewHeader: UICollectionReusableView {
     //MARK: - Identifer:
     static let identifier = "header"
     // MARK: - UI:

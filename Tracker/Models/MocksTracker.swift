@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MocksTracker {
+final class MocksTracker {
     static var mocksTrackers: [TrackerCategory] = [
         TrackerCategory(
             headerName: "Спорт",
@@ -28,7 +28,7 @@ class MocksTracker {
                     name: "Йога",
                     color: .ypColorSelection3,
                     emoji: "🧘‍♂️",
-                    schedule: [.Sunday]),
+                    schedule: [.Monday]),
             ]),
         TrackerCategory(
             headerName: "Отдых",
@@ -44,7 +44,7 @@ class MocksTracker {
                     name: "Встреча с друзьями",
                     color: .ypColorSelection5,
                     emoji: "🍻",
-                    schedule: [.Sunday]),
+                    schedule: [.Monday]),
             ])
     ]
 }

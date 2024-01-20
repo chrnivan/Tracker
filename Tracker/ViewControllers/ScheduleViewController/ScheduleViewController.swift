@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ScheduleViewController: UIViewController {
+final class ScheduleViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: ScheduleViewControllerDelegate?
     //MARK: - Private Properties

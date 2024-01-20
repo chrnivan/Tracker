@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SettingsScheduleCell: UITableViewCell {
+final class SettingsScheduleCell: UITableViewCell {
     // MARK: - Identider
     static let cellIdentifier = "TableViewCell"
     // MARK: - Delegate

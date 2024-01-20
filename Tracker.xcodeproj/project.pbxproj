@@ -28,7 +28,7 @@
 		E26028EB2B35D29A00DD5493 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26028EA2B35D29A00DD5493 /* SceneDelegate.swift */; };
 		E26028F22B35D29B00DD5493 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E26028F12B35D29B00DD5493 /* Assets.xcassets */; };
 		E26028F52B35D29B00DD5493 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E26028F32B35D29B00DD5493 /* LaunchScreen.storyboard */; };
-		E26028FD2B35DC0900DD5493 /* TabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26028FC2B35DC0900DD5493 /* TabBarViewController.swift */; };
+		E26028FD2B35DC0900DD5493 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26028FC2B35DC0900DD5493 /* TabBarController.swift */; };
 		E26028FF2B35DCC400DD5493 /* TrackerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26028FE2B35DCC400DD5493 /* TrackerViewController.swift */; };
 		E26029012B35DCD300DD5493 /* StatisticViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26029002B35DCD300DD5493 /* StatisticViewController.swift */; };
 		E260296C2B39D58300DD5493 /* Tracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E260296B2B39D58300DD5493 /* Tracker.swift */; };
@@ -38,6 +38,7 @@
 		E26420D62B58420700CE130A /* Extension Int.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26420D52B58420700CE130A /* Extension Int.swift */; };
 		E26420D92B59425600CE130A /* SettingsHabitOrEventCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26420D82B59425600CE130A /* SettingsHabitOrEventCell.swift */; };
 		E26420DC2B5A6C5100CE130A /* SettingOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26420DB2B5A6C5100CE130A /* SettingOptions.swift */; };
+		E27839152B5C2F7800F0C003 /* Extension UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27839142B5C2F7800F0C003 /* Extension UIViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,7 +65,7 @@
 		E26028F12B35D29B00DD5493 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E26028F42B35D29B00DD5493 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E26028F62B35D29B00DD5493 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E26028FC2B35DC0900DD5493 /* TabBarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarViewController.swift; sourceTree = "<group>"; };
+		E26028FC2B35DC0900DD5493 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		E26028FE2B35DCC400DD5493 /* TrackerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewController.swift; sourceTree = "<group>"; };
 		E26029002B35DCD300DD5493 /* StatisticViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticViewController.swift; sourceTree = "<group>"; };
 		E260296B2B39D58300DD5493 /* Tracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tracker.swift; sourceTree = "<group>"; };
@@ -74,6 +75,7 @@
 		E26420D52B58420700CE130A /* Extension Int.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension Int.swift"; sourceTree = "<group>"; };
 		E26420D82B59425600CE130A /* SettingsHabitOrEventCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHabitOrEventCell.swift; sourceTree = "<group>"; };
 		E26420DB2B5A6C5100CE130A /* SettingOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingOptions.swift; sourceTree = "<group>"; };
+		E27839142B5C2F7800F0C003 /* Extension UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension UIViewController.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +108,7 @@
 			children = (
 				E26420D52B58420700CE130A /* Extension Int.swift */,
 				E2392D702B5AA1D8003E42AB /* Extension Date.swift */,
+				E27839142B5C2F7800F0C003 /* Extension UIViewController.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -224,7 +227,7 @@
 		E26420D72B59128300CE130A /* TabBarViewController */ = {
 			isa = PBXGroup;
 			children = (
-				E26028FC2B35DC0900DD5493 /* TabBarViewController.swift */,
+				E26028FC2B35DC0900DD5493 /* TabBarController.swift */,
 			);
 			path = TabBarViewController;
 			sourceTree = "<group>";
@@ -316,6 +319,7 @@
 				E207C8942B57978700A8DDFB /* TrackerCollectionViewCell.swift in Sources */,
 				E207C88F2B54655700A8DDFB /* Weekday.swift in Sources */,
 				E207C8842B52D60F00A8DDFB /* NewEventViewController.swift in Sources */,
+				E27839152B5C2F7800F0C003 /* Extension UIViewController.swift in Sources */,
 				E207C8862B52DE7400A8DDFB /* ScheduleViewController.swift in Sources */,
 				E2392D812B5ADEA7003E42AB /* ProtocolScheduleCellDelegate.swift in Sources */,
 				E26420DC2B5A6C5100CE130A /* SettingOptions.swift in Sources */,
@@ -333,7 +337,7 @@
 				E2392D712B5AA1D8003E42AB /* Extension Date.swift in Sources */,
 				E207C88A2B52E1BF00A8DDFB /* CreateNewCategoryViewController.swift in Sources */,
 				E2392D752B5AD0C7003E42AB /* ProtocolCreateTypeTrackerDelegate.swift in Sources */,
-				E26028FD2B35DC0900DD5493 /* TabBarViewController.swift in Sources */,
+				E26028FD2B35DC0900DD5493 /* TabBarController.swift in Sources */,
 				E207C8882B52E04200A8DDFB /* CategoryViewController.swift in Sources */,
 				E26028EB2B35D29A00DD5493 /* SceneDelegate.swift in Sources */,
 				E260296C2B39D58300DD5493 /* Tracker.swift in Sources */,

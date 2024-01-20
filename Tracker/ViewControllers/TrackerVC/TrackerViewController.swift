@@ -10,10 +10,10 @@ import UIKit
 final class TrackerViewController: UIViewController {
     // MARK: - Private Properties
     private let settingsConstraintsCell: CollectionSettings = CollectionSettings(cellsQuantity: 2, rightInset: 16, leftInset: 16, cellSpacing: 9)
-    private var categories: [TrackerCategory] = MocksTracker.mocksTrackers
+    private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var visibleCategories: [TrackerCategory] = []
-    private var currentDay: Int?
+    private var dataManager = MocksTracker.mocksTrackers
     //MARK: - UI
     private lazy var stubImageView: UIImageView = {
         let image = UIImage(named: "StubImage")
@@ -25,6 +25,24 @@ final class TrackerViewController: UIViewController {
     private lazy var stubLabel: UILabel = {
         let label = UILabel()
         label.text = "Что будем отслеживать?"
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.numberOfLines = 2
+        label.textAlignment = .center
+        label.textColor = .ypBlack
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var noSearchImageView: UIImageView = {
+        let image = UIImage(named: "noInfoImage")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var noSearchLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ничего не найдено"
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.numberOfLines = 2
         label.textAlignment = .center
@@ -49,6 +67,8 @@ final class TrackerViewController: UIViewController {
         picker.datePickerMode = .date
         picker.preferredDatePickerStyle = .compact
         picker.locale = Locale(identifier: "ru_RU")
+        picker.calendar.firstWeekday = 2
+        picker.clipsToBounds = true
         picker.tintColor = .ypBlue
         picker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         picker.heightAnchor.constraint(equalToConstant: 34).isActive = true
@@ -74,19 +94,40 @@ final class TrackerViewController: UIViewController {
     // MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.addTapGestureToHideKeyboard()
         trackersCollectionView.delegate = self
         trackersCollectionView.dataSource = self
         view.backgroundColor = .ypWhite
         setupView()
         navBarItem()
         setupConstraints()
-        reload()
+        reloadData()
+        conditionStubs()
     }
     // MARK: - Private Methods
     private func conditionStubs() {
         if !visibleCategories.isEmpty {
             stubLabel.isHidden = true
             stubImageView.isHidden = true
+            trackersCollectionView.isHidden = false
+        } else {
+            trackersCollectionView.isHidden = true
+            stubLabel.isHidden = false
+            stubImageView.isHidden = false
+        }
+    }
+    
+    private func reloadPlaceholder() {
+        if !categories.isEmpty && visibleCategories.isEmpty {
+            stubLabel.isHidden = true
+            stubImageView.isHidden = true
+            noSearchImageView.isHidden = false
+            noSearchLabel.isHidden = false
+        } else if !visibleCategories.isEmpty {
+            stubLabel.isHidden = true
+            stubImageView.isHidden = true
+            noSearchImageView.isHidden = true
+            noSearchLabel.isHidden = true
             trackersCollectionView.isHidden = false
         } else {
             trackersCollectionView.isHidden = true
@@ -106,8 +147,14 @@ final class TrackerViewController: UIViewController {
         constraints.append(stubImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor))
         constraints.append(stubImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor))
         
+        constraints.append(noSearchImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor))
+        constraints.append(noSearchImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor))
+        
         constraints.append(stubLabel.centerXAnchor.constraint(equalTo: stubImageView.centerXAnchor))
         constraints.append(stubLabel.topAnchor.constraint(equalTo: stubImageView.bottomAnchor, constant: 8))
+        
+        constraints.append(noSearchLabel.centerXAnchor.constraint(equalTo: noSearchImageView.centerXAnchor))
+        constraints.append(noSearchLabel.topAnchor.constraint(equalTo: noSearchImageView.bottomAnchor, constant: 8))
         
         constraints.append(searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor))
         constraints.append(searchBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16))
@@ -122,6 +169,10 @@ final class TrackerViewController: UIViewController {
         view.addSubview(stubImageView)
         view.addSubview(stubLabel)
         view.addSubview(searchBar)
+        view.addSubview(noSearchImageView)
+        view.addSubview(noSearchLabel)
+        noSearchImageView.isHidden = true
+        noSearchLabel.isHidden = true
     }
     
     private func navBarItem() {
@@ -143,26 +194,32 @@ final class TrackerViewController: UIViewController {
     }
     
     private func reloadVisibleCategories() {
+        let calendar = Calendar.current
+        let filterWeekday = calendar.component(.weekday, from: datePicker.date)
         let filterText = (searchBar.text ?? "").lowercased()
-        currentDay = Calendar.current.component(.weekday, from: datePicker.date)
+        print(visibleCategories.count)
         visibleCategories = categories.compactMap { category in
             let trackers = category.trackerArray.filter { tracker in
                 let textCondition = filterText.isEmpty || tracker.name.lowercased().contains(filterText)
                 let dateCondition = tracker.schedule.contains { weekDay in
-                    weekDay.calendarDayNumber == currentDay
+                    weekDay.calendarDayNumber == filterWeekday
                 } == true
                 return textCondition && dateCondition
             }
-            if trackers.isEmpty { return nil }
+            if trackers.isEmpty {
+                return nil
+            }
+            
             return TrackerCategory(
                 headerName: category.headerName,
                 trackerArray: trackers)
         }
         trackersCollectionView.reloadData()
-        conditionStubs()
+        reloadPlaceholder()
     }
     
-    private func reload() {
+    private func reloadData() {
+        categories = dataManager
         datePickerValueChanged()
     }
     // MARK: - Objc Methods:
@@ -274,8 +331,8 @@ extension TrackerViewController: CreateTypeTrackerDelegate {
             categories.remove(at: index ?? 0)
             categories.insert(newCategory, at: index ?? 0)
         }
-        conditionStubs()
         visibleCategories = categories
+        reloadVisibleCategories()
         trackersCollectionView.reloadData()
     }
 }

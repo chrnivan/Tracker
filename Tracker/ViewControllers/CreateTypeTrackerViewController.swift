@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CreateTypeTrackerViewController: UIViewController {
+final class CreateTypeTrackerViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: CreateTypeTrackerDelegate?
     //MARK: - UI

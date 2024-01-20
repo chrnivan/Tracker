@@ -7,7 +7,7 @@
 
 import UIKit
 
-class NewEventViewController: UIViewController {
+final class NewEventViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: TrackerCreateViewControllerDelegate?
     //MARK: - Private Properties
@@ -113,6 +113,7 @@ class NewEventViewController: UIViewController {
         appendSettingsToArray()
         categoryTableView.delegate = self
         categoryTableView.dataSource = self
+        self.addTapGestureToHideKeyboard()
     }
     //MARK: - Private Methods
     private func setupConstraints(){

@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CreateNewCategoryViewController: UIViewController {
+final class CreateNewCategoryViewController: UIViewController {
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
