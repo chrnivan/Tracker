@@ -109,6 +109,8 @@ final class TrackerViewController: UIViewController {
         if !visibleCategories.isEmpty {
             stubLabel.isHidden = true
             stubImageView.isHidden = true
+            noSearchImageView.isHidden = true
+            noSearchLabel.isHidden = true
             trackersCollectionView.isHidden = false
         } else {
             trackersCollectionView.isHidden = true
@@ -119,20 +121,13 @@ final class TrackerViewController: UIViewController {
     
     private func reloadPlaceholder() {
         if !categories.isEmpty && visibleCategories.isEmpty {
-            stubLabel.isHidden = true
-            stubImageView.isHidden = true
             noSearchImageView.isHidden = false
             noSearchLabel.isHidden = false
-        } else if !visibleCategories.isEmpty {
             stubLabel.isHidden = true
             stubImageView.isHidden = true
+        } else {
             noSearchImageView.isHidden = true
             noSearchLabel.isHidden = true
-            trackersCollectionView.isHidden = false
-        } else {
-            trackersCollectionView.isHidden = true
-            stubLabel.isHidden = false
-            stubImageView.isHidden = false
         }
     }
     
@@ -197,7 +192,6 @@ final class TrackerViewController: UIViewController {
         let calendar = Calendar.current
         let filterWeekday = calendar.component(.weekday, from: datePicker.date)
         let filterText = (searchBar.text ?? "").lowercased()
-        print(visibleCategories.count)
         visibleCategories = categories.compactMap { category in
             let trackers = category.trackerArray.filter { tracker in
                 let textCondition = filterText.isEmpty || tracker.name.lowercased().contains(filterText)
@@ -209,7 +203,29 @@ final class TrackerViewController: UIViewController {
             if trackers.isEmpty {
                 return nil
             }
-            
+            return TrackerCategory(
+                headerName: category.headerName,
+                trackerArray: trackers)
+        }
+        trackersCollectionView.reloadData()
+        conditionStubs()
+    }
+    
+    private func reloadVisibleCategoriesSearch() {
+        let calendar = Calendar.current
+        let filterWeekday = calendar.component(.weekday, from: datePicker.date)
+        let filterText = (searchBar.text ?? "").lowercased()
+        visibleCategories = categories.compactMap { category in
+            let trackers = category.trackerArray.filter { tracker in
+                let textCondition = filterText.isEmpty || tracker.name.lowercased().contains(filterText)
+                let dateCondition = tracker.schedule.contains { weekDay in
+                    weekDay.calendarDayNumber == filterWeekday
+                } == true
+                return textCondition && dateCondition
+            }
+            if trackers.isEmpty {
+                return nil
+            }
             return TrackerCategory(
                 headerName: category.headerName,
                 trackerArray: trackers)
@@ -219,7 +235,7 @@ final class TrackerViewController: UIViewController {
     }
     
     private func reloadData() {
-        categories = dataManager
+        //categories = dataManager
         datePickerValueChanged()
     }
     // MARK: - Objc Methods:
@@ -230,6 +246,8 @@ final class TrackerViewController: UIViewController {
     }
     
     @objc private func datePickerValueChanged() {
+        noSearchImageView.isHidden = true
+        noSearchLabel.isHidden = true
         reloadVisibleCategories()
     }
 }
@@ -237,7 +255,7 @@ final class TrackerViewController: UIViewController {
 extension TrackerViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
-        reloadVisibleCategories()
+        reloadVisibleCategoriesSearch()
         return true
     }
 }
