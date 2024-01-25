@@ -13,7 +13,25 @@ final class NewHabitViewController: UIViewController {
     weak var trackerCreateViewControllerDelegate: TrackerCreateViewControllerDelegate?
     //MARK: - Private Properties
     private var selectWeekDays: [Weekday] = []
+    internal var selectedCategory: String = ""
     private var configure: Array<SettingOptions> = []
+    private let emojis: [String] = [
+        "🙂", "😻", "🌺", "🐶", "❤️", "😱",
+        "😇", "😡", "🥶", "🤔", "🙌", "🍔",
+        "🥦", "🏓", "🥇", "🎸", "🏝", "😪"
+    ]
+    
+    private let colors: [UIColor] = [
+        .ypColorSelection1, .ypColorSelection2, .ypColorSelection3,
+        .ypColorSelection4, .ypColorSelection5, .ypColorSelection6,
+        .ypColorSelection7, .ypColorSelection8, .ypColorSelection9,
+        .ypColorSelection10, .ypColorSelection11, .ypColorSelection12,
+        .ypColorSelection13, .ypColorSelection14, .ypColorSelection15,
+        .ypColorSelection16, .ypColorSelection17, .ypColorSelection18
+    ]
+    
+    private var selectedEmoji: String?
+    private var selectedColor: UIColor?
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
@@ -62,7 +80,7 @@ final class NewHabitViewController: UIViewController {
         return button
     }()
     
-    private var categoryOrScheduleTableView: UITableView = {
+    private lazy var categoryOrScheduleTableView: UITableView = {
         var tableView = UITableView(frame: .zero)
         tableView.register(SettingsHabitOrEventCell.self, forCellReuseIdentifier: SettingsHabitOrEventCell.cellIdentifer)
         tableView.separatorStyle = .singleLine
@@ -70,6 +88,8 @@ final class NewHabitViewController: UIViewController {
         tableView.layer.masksToBounds = true
         tableView.layer.cornerRadius = 16
         tableView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+        tableView.delegate = self
+        tableView.dataSource = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -107,6 +127,42 @@ final class NewHabitViewController: UIViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
+    
+    private lazy var emojiCollectionView: UICollectionView = {
+        let collectionView = UICollectionView(frame: .zero,
+                                              collectionViewLayout: UICollectionViewFlowLayout())
+        collectionView.register(EmojiCell.self, forCellWithReuseIdentifier: EmojiCell.identifier)
+        collectionView.register(HeaderEmojiCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HeaderEmojiCell.identifier)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.allowsMultipleSelection = false
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+    
+    private lazy var colorCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero,
+                                              collectionViewLayout: layout)
+        collectionView.register(ColorCell.self, forCellWithReuseIdentifier: ColorCell.identifier)
+        collectionView.register(HeaderColorCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HeaderColorCell.identifier)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.allowsMultipleSelection = false
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+    
+    private lazy var scrollView: UIScrollView = {
+        let scroll = UIScrollView()
+        scroll.isMultipleTouchEnabled = true
+        scroll.isScrollEnabled = true
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.decelerationRate = .init(rawValue: 1)
+        return scroll
+    }()
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -114,26 +170,41 @@ final class NewHabitViewController: UIViewController {
         view.backgroundColor = .ypWhite
         setupView()
         setupConstraints()
-        categoryOrScheduleTableView.delegate = self
-        categoryOrScheduleTableView.dataSource = self
         self.addTapGestureToHideKeyboard()
     }
     //MARK: - Private Methods
     private func setupConstraints() {
         var constraints = [NSLayoutConstraint]()
         
+        scrollView.contentSize = CGSize(width: view.frame.width, height: 730)
+        
         constraints.append(titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor))
         constraints.append(titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 38))
         
-        constraints.append(nameTrackerTextField.heightAnchor.constraint(equalToConstant: 75))
-        constraints.append(nameTrackerTextField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16))
-        constraints.append(nameTrackerTextField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16))
-        constraints.append(nameTrackerTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38))
+        constraints.append(scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38))
+        constraints.append(scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor))
+        constraints.append(scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor))
+        constraints.append(scrollView.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -5))
         
-        constraints.append(categoryOrScheduleTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16))
-        constraints.append(categoryOrScheduleTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16))
+        constraints.append(nameTrackerTextField.heightAnchor.constraint(equalToConstant: 75))
+        constraints.append(nameTrackerTextField.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16))
+        constraints.append(nameTrackerTextField.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -16))
+        constraints.append(nameTrackerTextField.topAnchor.constraint(equalTo: scrollView.topAnchor))
+        
+        constraints.append(categoryOrScheduleTableView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 16))
+        constraints.append(categoryOrScheduleTableView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -16))
         constraints.append(categoryOrScheduleTableView.topAnchor.constraint(equalTo: nameTrackerTextField.bottomAnchor, constant: 24))
         constraints.append(categoryOrScheduleTableView.heightAnchor.constraint(equalToConstant: 150))
+        
+        constraints.append(emojiCollectionView.topAnchor.constraint(equalTo: categoryOrScheduleTableView.bottomAnchor, constant: 32))
+        constraints.append(emojiCollectionView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 19))
+        constraints.append(emojiCollectionView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -19))
+        constraints.append(emojiCollectionView.heightAnchor.constraint(equalToConstant: 222))
+        
+        constraints.append(colorCollectionView.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 16))
+        constraints.append(colorCollectionView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 18))
+        constraints.append(colorCollectionView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -18))
+        constraints.append(colorCollectionView.heightAnchor.constraint(equalToConstant: 222))
         
         constraints.append(buttonStackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20))
         constraints.append(buttonStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20))
@@ -151,10 +222,13 @@ final class NewHabitViewController: UIViewController {
     
     private func setupView() {
         view.addSubview(titleLabel)
-        view.addSubview(nameTrackerTextField)
-        view.addSubview(restrictionLabel)
-        view.addSubview(categoryOrScheduleTableView)
+        view.addSubview(scrollView)
         view.addSubview(buttonStackView)
+        scrollView.addSubview(nameTrackerTextField)
+        scrollView.addSubview(restrictionLabel)
+        scrollView.addSubview(categoryOrScheduleTableView)
+        scrollView.addSubview(emojiCollectionView)
+        scrollView.addSubview(colorCollectionView)
         buttonStackView.addArrangedSubview(cancelButton)
         buttonStackView.addArrangedSubview(createButton)
     }
@@ -163,7 +237,7 @@ final class NewHabitViewController: UIViewController {
         configure.append(
             SettingOptions(
                 name: "Категория",
-                pickedSettings: "Mocks" //TODO
+                pickedSettings: nil
             ))
         configure.append(SettingOptions(
             name: "Расписание",
@@ -172,7 +246,8 @@ final class NewHabitViewController: UIViewController {
     }
     
     private func checkCorrectness() {
-        if let text = nameTrackerTextField.text, !text.isEmpty || !selectWeekDays.isEmpty {
+        
+        if let text = nameTrackerTextField.text, !text.isEmpty || !selectWeekDays.isEmpty || !colors.isEmpty || !selectedEmoji!.isEmpty {
             createButton.isEnabled = true
             createButton.backgroundColor = .ypBlack
         } else {
@@ -192,13 +267,14 @@ final class NewHabitViewController: UIViewController {
     
     @objc func createButtonClicked() {
         guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
+        guard let colour = selectedColor, let emoji = selectedEmoji else { return }
         let newTracker = Tracker(id: UUID(),
                                  name: text,
-                                 color: .ypColorSelection7,
-                                 emoji: "👻",
+                                 color: colour,
+                                 emoji: emoji,
                                  schedule: self.selectWeekDays)
         self.dismiss(animated: true)
-        trackerCreateViewControllerDelegate?.passingTracker(newTracker, "Mocks", from: self)
+        trackerCreateViewControllerDelegate?.passingTracker(newTracker, selectedCategory)
     }
     
     @objc private func textFieldDidChange() {
@@ -244,6 +320,7 @@ extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0{
             let viewController = CategoryViewController()
+            viewController.delegate = self
             self.present(viewController, animated: true)
         } else if indexPath.row == 1 {
             let viewController = ScheduleViewController()
@@ -265,3 +342,119 @@ extension NewHabitViewController: ScheduleViewControllerDelegate {
         dismiss(animated: true)
     }
 }
+extension NewHabitViewController: CategoryViewControllerDelegate {
+    func didSelectCategory(category: String) {
+        selectedCategory = category
+        configure[0].pickedSettings = selectedCategory
+        categoryOrScheduleTableView.reloadData()
+        dismiss(animated: true)
+    }
+}
+// MARK: - UICollectionViewDataSource
+extension NewHabitViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == emojiCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: EmojiCell.identifier,
+                for: indexPath) as? EmojiCell else {
+                assertionFailure("Не удалось выполнить приведение к EmojiCell")
+                return UICollectionViewCell()
+            }
+            cell.titleLabel.text = emojis[indexPath.item]
+            return cell
+        } else if collectionView == colorCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ColorCell.identifier,
+                for: indexPath) as? ColorCell else {
+                assertionFailure("Не удалось выполнить приведение к ColorCell")
+                return UICollectionViewCell()
+            }
+            cell.titleLabel.backgroundColor = colors[indexPath.row]
+            return cell
+        }
+        return UICollectionViewCell()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        colors.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if collectionView == emojiCollectionView {
+            guard let view = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: HeaderEmojiCell.identifier,
+                for: indexPath) as? HeaderEmojiCell else {
+                assertionFailure("Не удалось выполнить приведение к EmojiHeader")
+                return UICollectionReusableView()
+            }
+            return view
+        } else if collectionView == colorCollectionView {
+            guard let view = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: HeaderColorCell.identifier,
+                for: indexPath) as? HeaderColorCell else {
+                assertionFailure("Не удалось выполнить приведение к ColorHeader")
+                return UICollectionReusableView()
+            }
+            return view
+        }
+        return UICollectionReusableView()
+    }
+}
+// MARK: - UICollectionViewDelegateFlowLayout
+extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let cellWidth = (collectionView.bounds.width - 36) / 6
+        let cellHeight = 52.0
+        return CGSize(width: cellWidth, height: cellHeight)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 5
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 24, left: 0, bottom: 0, right: 0)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.bounds.width, height: 18)
+    }
+    
+}
+// MARK: - UICollectionViewDelegate
+extension NewHabitViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == emojiCollectionView {
+            let cell = collectionView.cellForItem(at: indexPath) as? EmojiCell
+            selectedEmoji = emojis[indexPath.item]
+            cell?.layer.masksToBounds = true
+            cell?.layer.cornerRadius = 16
+            cell?.backgroundColor = .ypLightGray
+        } else if collectionView == colorCollectionView {
+            let cell = collectionView.cellForItem(at: indexPath) as? ColorCell
+            selectedColor = colors[indexPath.item]
+            cell?.layer.masksToBounds = true
+            cell?.layer.cornerRadius = 9
+            cell?.layer.borderWidth = 3
+            cell?.setBorderColorCell()
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if collectionView == emojiCollectionView {
+            let cell = collectionView.cellForItem(at: indexPath) as? EmojiCell
+            cell?.backgroundColor = .clear
+
+        } else if collectionView == colorCollectionView {
+            let cell = collectionView.cellForItem(at: indexPath) as? ColorCell
+            cell?.layer.borderWidth = 0
+        }
+    }
+}
+
