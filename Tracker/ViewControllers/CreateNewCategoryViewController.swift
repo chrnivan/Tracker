@@ -93,9 +93,7 @@ final class CreateNewCategoryViewController: UIViewController {
                 title: "Ошибка",
                 message: "Ошибка при создании новой категории",
                 preferredStyle: .alert)
-            let OKAction = UIAlertAction(title: "OK", style: .default) { (action:UIAlertAction!) in
-                print("Ok button tapped")
-            }
+            let OKAction = UIAlertAction(title: "OK", style: .default)
             alertController.addAction(OKAction)
             self.present(alertController, animated: true, completion: nil)
         }

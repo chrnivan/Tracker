@@ -90,7 +90,12 @@ final class CategoryViewController: UIViewController {
         }
     }
     private func updateCategoriesList() {
-        categories = categoryStore.getListCategoriesCoreData()
+        do {
+            categories = try categoryStore.getListCategoriesCoreData()
+        }
+        catch {
+            //TODO: Alert
+        }
     }
     
     private func setupConstraints() {
@@ -182,7 +187,12 @@ extension CategoryViewController: UITableViewDelegate {
 // MARK: - CategoriesViewControllerProtocol:
 extension CategoryViewController: NewCategoryViewControllerProtocol {
     func reloadTable() {
-        categories = categoryStore.getListCategoriesCoreData()
+        do {
+            categories = try categoryStore.getListCategoriesCoreData()
+        }
+        catch {
+            //TODO: Alert
+        }
         showOrHideEmptyLabels()
         categoryTableView.reloadData()
     }

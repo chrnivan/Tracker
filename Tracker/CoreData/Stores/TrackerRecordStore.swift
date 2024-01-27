@@ -22,7 +22,7 @@ final class TrackerRecordStore: NSObject {
         do {
             recordsCoreData = try getTrackerRecords()
         } catch {
-            print("\(TrackerRecordStoreError.failedFetchRecords)")
+            TrackerRecordStoreError.failedFetchRecords
         }
         guard let fetchedRecords = recordsCoreData else {
             return []
@@ -33,7 +33,10 @@ final class TrackerRecordStore: NSObject {
     private var context: NSManagedObjectContext
     // MARK: - Initializers:
     convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("Ошибка с инициализацией AppDelegate")
+        }
+        let context = appDelegate.persistentContainer.viewContext
         self.init(context: context)
     }
     

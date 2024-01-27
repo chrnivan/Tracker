@@ -360,7 +360,9 @@ extension NewHabitViewController: UICollectionViewDataSource {
                 assertionFailure("Не удалось выполнить приведение к EmojiCell")
                 return UICollectionViewCell()
             }
-            cell.titleLabel.text = emojis[indexPath.item]
+            cell.configure(withEmoji: emojis[indexPath.item])
+           
+            
             return cell
         } else if collectionView == colorCollectionView {
             guard let cell = collectionView.dequeueReusableCell(
@@ -368,8 +370,8 @@ extension NewHabitViewController: UICollectionViewDataSource {
                 for: indexPath) as? ColorCell else {
                 assertionFailure("Не удалось выполнить приведение к ColorCell")
                 return UICollectionViewCell()
-            }
-            cell.titleLabel.backgroundColor = colors[indexPath.row]
+            }  
+            cell.configure(backgroundColor: colors[indexPath.row])
             return cell
         }
         return UICollectionViewCell()

@@ -338,7 +338,7 @@ extension TrackerViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        let cell = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: TrackerCollectionViewHeader.identifier, for: indexPath) as! TrackerCollectionViewHeader
+        guard let cell = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: TrackerCollectionViewHeader.identifier, for: indexPath) as? TrackerCollectionViewHeader else { return UICollectionViewCell() }
         cell.titleLabel.font = .boldSystemFont(ofSize: 19)
         cell.titleLabel.text = visibleCategories[indexPath.section].headerName
         return cell
@@ -356,9 +356,7 @@ extension TrackerViewController: CreateTypeTrackerDelegate {
                 title: "Ошибка",
                 message: "Ошибка при создании нового трекера",
                 preferredStyle: .alert)
-            let OKAction = UIAlertAction(title: "OK", style: .default) { (action: UIAlertAction!) in
-                print("Ok button tapped")
-            }
+            let OKAction = UIAlertAction(title: "OK", style: .default)
             alertController.addAction(OKAction)
             self.present(alertController, animated: true, completion: nil)
         }

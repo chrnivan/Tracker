@@ -11,7 +11,7 @@ final class HeaderEmojiCell: UICollectionReusableView {
     // MARK: - Identifer
     static let identifier = "headerEmojiCell"
     //MARK: - UI
-    var titleLabel: UILabel = {
+    private var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = .ypBlack

@@ -11,7 +11,7 @@ final class EmojiCell: UICollectionViewCell {
     // MARK: - Identifer
     static let identifier = "emojiCell"
     //MARK: - UI
-    var titleLabel: UILabel = {
+    private var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 32)
         label.textAlignment = .center
@@ -31,6 +31,10 @@ final class EmojiCell: UICollectionViewCell {
     //MARK: - Private Methods
     private func setupViews() {
         contentView.addSubview(titleLabel)
+    }
+    
+    func configure(withEmoji emoji: String?) {
+        titleLabel.text = emoji
     }
     
     private func setupConstraints() {

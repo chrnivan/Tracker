@@ -11,7 +11,7 @@ final class ColorCell: UICollectionViewCell {
     // MARK: - Identifer
     static let identifier = "colorCell"
     //MARK: - UI
-    var titleLabel: UILabel = {
+    private var titleLabel: UILabel = {
         let label = UILabel()
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 9
@@ -31,6 +31,10 @@ final class ColorCell: UICollectionViewCell {
     //MARK: - Public Methods
     func setBorderColorCell() {
         layer.borderColor = titleLabel.backgroundColor?.withAlphaComponent(0.3).cgColor
+    }
+    
+    func configure(backgroundColor: UIColor?) {
+        titleLabel.backgroundColor = backgroundColor
     }
     //MARK: - Private Methods
     private func setupViews() {

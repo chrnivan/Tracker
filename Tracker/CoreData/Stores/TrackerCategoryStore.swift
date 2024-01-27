@@ -21,8 +21,7 @@ final class TrackerCategoryStore: NSObject {
     static let shared = TrackerCategoryStore()
     // MARK: - Public Properties
     var categories: [TrackerCategory] {
-        let categoriesCoreData = getListCategories()
-        guard let categories = try? categoriesCoreData.map({ try self.convertToTrackerCategory($0) }) else {
+        guard let categories = try? getListCategories().map({ try self.convertToTrackerCategory($0) }) else {
             return []
         }
         return categories
@@ -35,7 +34,10 @@ final class TrackerCategoryStore: NSObject {
     
     // MARK: - Initializers:
     convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("Ошибка с инициализацией AppDelegate")
+        }
+        let context = appDelegate.persistentContainer.viewContext
         self.init(context: context)
     }
     
@@ -93,7 +95,7 @@ final class TrackerCategoryStore: NSObject {
         return category
     }
     
-    func getListCategoriesCoreData() -> [String] {
+    func getListCategoriesCoreData() throws -> [String] {
         let request = TrackerCategoryCoreData.fetchRequest()
         request.returnsObjectsAsFaults = false
         var list: [String] = []
@@ -101,19 +103,19 @@ final class TrackerCategoryStore: NSObject {
             let objects = try context.fetch(request)
             list = objects.compactMap { try? convertToTrackerCategory($0)}.map { $0.headerName }
         } catch {
-            print("\(TrackeryCategoryStoreError.failedGetCategories)")
+            throw TrackeryCategoryStoreError.failedGetCategories
         }
         return list
     }
     
-    func getListCategories() -> [TrackerCategoryCoreData] {
+    func getListCategories() throws -> [TrackerCategoryCoreData] {
         let request = TrackerCategoryCoreData.fetchRequest()
         request.returnsObjectsAsFaults = false
         var list: [TrackerCategoryCoreData]?
         do {
             list = try context.fetch(request)
         } catch {
-            print("\(TrackeryCategoryStoreError.failedGetCategories)")
+            throw TrackeryCategoryStoreError.failedGetCategories
         }
         guard let categories = list else { fatalError("\(TrackeryCategoryStoreError.failedCreateRequest)")}
         return categories
