@@ -92,8 +92,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
                       emoji: String,
                       completedDays: Int,
                       isEnabled: Bool,
-                      isCompleted: Bool,
-                      indexPath: IndexPath) {
+                      isCompleted: Bool) {
         self.trackerIdentifer = id
         self.textTrackerLabel.text = name
         self.trackerView.backgroundColor = color
@@ -105,7 +104,6 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         let image = isCompleted ? doneButtonImage : plusButtonImage
         plusButton.setImage(image, for: .normal)
         plusButton.alpha = isCompleted ? 0.3 : 1
-        self.indexPath = indexPath
     }
     // MARK: - Private Methods:
     private func configureCell() {
@@ -149,7 +147,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     }
     //  MARK: - Objc Methods:
     @objc private func plusButtonTapped() {
-        guard let id = trackerIdentifer, let indexPath = indexPath else { return }
-        delegate?.trackerCompleted(for: id, at: indexPath)
+        guard let id = trackerIdentifer else { return }
+        delegate?.trackerCompleted(for: id)
     }
 }

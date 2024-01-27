@@ -85,14 +85,12 @@ final class CreateTypeTrackerViewController: UIViewController {
     }
     //MARK: - Objc Methods
     @objc private func createNewTask() {
-        print("create new task")
         let viewController = NewHabitViewController()
         viewController.trackerCreateViewControllerDelegate = self
         present(viewController, animated: true)
     }
     
     @objc private func createNewIrregularEvent() {
-        print("Create irregular event")
         let viewController = NewEventViewController()
         viewController.delegate = self
         present(viewController, animated: true)
@@ -101,9 +99,9 @@ final class CreateTypeTrackerViewController: UIViewController {
 
 // MARK: - TrackerCreatingViewControllerDelegate:
 extension CreateTypeTrackerViewController: TrackerCreateViewControllerDelegate {
-    func passingTracker(_ tracker: Tracker,  _ category: String, from: UIViewController) {
+    func passingTracker(_ tracker: Tracker, _ category: String) {
         self.dismiss(animated: true)
-        delegate?.plusTracker(tracker, category, from: self)
+        delegate?.createTracker(tracker, with: category)
     }
 }
 
