@@ -128,6 +128,7 @@ final class NewEventViewController: UIViewController {
         view.backgroundColor = .ypWhite
         setupView()
         setupConstraints()
+        checkCorrectness()
         appendSettingsToArray()
         categoryTableView.delegate = self
         categoryTableView.dataSource = self
@@ -239,12 +240,12 @@ final class NewEventViewController: UIViewController {
     }
     
     private func checkCorrectness() {
-        if let text = nameTrackerTextField.text, !text.isEmpty || !colors.isEmpty || !selectedEmoji!.isEmpty {
-            createButton.isEnabled = true
-            createButton.backgroundColor = .ypBlack
-        } else {
+        if selectedCategory.isEmpty || nameTrackerTextField.text?.isEmpty == true || selectedColor == nil || selectedEmoji == nil {
             createButton.isEnabled = false
             createButton.backgroundColor = .ypGray
+        } else {
+            createButton.isEnabled = true
+            createButton.backgroundColor = .ypBlack
         }
     }
     //MARK: - Objc Methods
@@ -284,10 +285,10 @@ final class NewEventViewController: UIViewController {
     }
 }
 extension NewEventViewController: CategoryViewControllerDelegate {
-    func didSelectCategory(category: String) {
-        selectedCategory = category
+    func didSelectCategory() {
         configure[0].pickedSettings = selectedCategory
         categoryTableView.reloadData()
+        checkCorrectness()
         dismiss(animated: true)
     }
 }
@@ -386,15 +387,15 @@ extension NewEventViewController: UICollectionViewDelegateFlowLayout {
         let cellHeight = 52.0
         return CGSize(width: cellWidth, height: cellHeight)
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 5
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 24, left: 0, bottom: 0, right: 0)
     }
@@ -413,6 +414,7 @@ extension NewEventViewController: UICollectionViewDelegate {
             cell?.layer.masksToBounds = true
             cell?.layer.cornerRadius = 16
             cell?.backgroundColor = .ypLightGray
+            checkCorrectness()
         } else if collectionView == colorCollectionView {
             let cell = collectionView.cellForItem(at: indexPath) as? ColorCell
             selectedColor = colors[indexPath.item]
@@ -420,17 +422,19 @@ extension NewEventViewController: UICollectionViewDelegate {
             cell?.layer.cornerRadius = 9
             cell?.layer.borderWidth = 3
             cell?.setBorderColorCell()
+            checkCorrectness()
         }
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
         if collectionView == emojiCollectionView {
             let cell = collectionView.cellForItem(at: indexPath) as? EmojiCell
             cell?.backgroundColor = .clear
-
+            checkCorrectness()
         } else if collectionView == colorCollectionView {
             let cell = collectionView.cellForItem(at: indexPath) as? ColorCell
             cell?.layer.borderWidth = 0
+            checkCorrectness()
         }
     }
 }

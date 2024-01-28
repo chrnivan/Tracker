@@ -8,5 +8,6 @@
 import Foundation
 
 protocol CategoryViewControllerDelegate: AnyObject {
-    func didSelectCategory(category: String)
+    var selectedCategory: String { get set }
+    func didSelectCategory()
 }

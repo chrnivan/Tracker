@@ -10,10 +10,10 @@ import UIKit
 final class CategoryViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: CategoryViewControllerDelegate?
-    //MARK: - Private Propeties
-    private var categories: [String] = []
+    //MARK: - Private Properties
     private var selectedCategory: String = ""
     private let categoryStore = TrackerCategoryStore.shared
+    private let viewModel: CategoryViewModel
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
@@ -62,24 +62,41 @@ final class CategoryViewController: UIViewController {
         tableView.layer.cornerRadius = 16
         tableView.separatorStyle = .singleLine
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         tableView.delegate = self
         tableView.dataSource = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    // MARK: - Initializers
+    init() {
+        viewModel = CategoryViewModel()
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setupConstraints()
         view.backgroundColor = .ypWhite
-        updateCategoriesList()
         showOrHideEmptyLabels()
+        viewModel.onChange = { [weak self] in
+            self?.showOrHideEmptyLabels()
+            self?.categoryTableView.reloadData()
+        }
+    }
+    
+    // MARK: - LifeCycle:
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        selectedCategory = delegate?.selectedCategory ?? ""
     }
     //MARK: - Private Metods
     private func showOrHideEmptyLabels() {
-        if !categories.isEmpty {
+        if !viewModel.categories.isEmpty {
             stubLabel.isHidden = true
             stubImageView.isHidden = true
             categoryTableView.isHidden = false
@@ -87,14 +104,6 @@ final class CategoryViewController: UIViewController {
             categoryTableView.isHidden = true
             stubLabel.isHidden = false
             stubImageView.isHidden = false
-        }
-    }
-    private func updateCategoriesList() {
-        do {
-            categories = try categoryStore.getListCategoriesCoreData()
-        }
-        catch {
-            //TODO: Alert
         }
     }
     
@@ -140,7 +149,6 @@ final class CategoryViewController: UIViewController {
     //MARK: - Objc Metods
     @objc private func addCategoryButtonClicked() {
         let viewController = CreateNewCategoryViewController()
-        viewController.delegate = self
         self.present(viewController, animated: true)
     }
 }
@@ -148,7 +156,7 @@ final class CategoryViewController: UIViewController {
 //MARK: - UITableViewDataSource
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        categories.count
+        viewModel.categories.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -160,10 +168,25 @@ extension CategoryViewController: UITableViewDataSource {
             assertionFailure("Не удалось выполнить приведение к UITableViewCell")
             return UITableViewCell()
         }
-        cell.textLabel?.text = categories[indexPath.row]
+        cell.textLabel?.text = viewModel.categories[indexPath.row].headerName
         cell.selectionStyle = .none
         cell.backgroundColor = .ypBackground
         cell.layer.masksToBounds = true
+        if viewModel.categories.count == 1 {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMaxXMaxYCorner, .layerMinXMaxYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 1000)
+        } else if indexPath.row == viewModel.categories.count - 1 {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMaxXMaxYCorner, .layerMinXMaxYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 1000)
+        } else {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+            cell.layer.cornerRadius = 0
+        }
+        if selectedCategory == cell.textLabel?.text {
+            cell.accessoryView = UIImageView(image: UIImage(named: "DoneCollectionButton"))
+        }
         return cell
     }
 }
@@ -177,23 +200,17 @@ extension CategoryViewController: UITableViewDelegate {
         if cell?.accessoryView != .none {
             selectedCategory = ""
         } else {
+            cell?.accessoryView = UIImageView(image: UIImage(named: "DoneCollectionButton"))
             selectedCategory = cell?.textLabel?.text ?? ""
         }
-        delegate?.didSelectCategory(category: selectedCategory)
+        delegate?.selectedCategory = selectedCategory
+        delegate?.didSelectCategory()
         self.dismiss(animated: true)
+    }
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
+        cell?.accessoryView = .none
+        selectedCategory = ""
     }
 }
 
-// MARK: - CategoriesViewControllerProtocol:
-extension CategoryViewController: NewCategoryViewControllerProtocol {
-    func reloadTable() {
-        do {
-            categories = try categoryStore.getListCategoriesCoreData()
-        }
-        catch {
-            //TODO: Alert
-        }
-        showOrHideEmptyLabels()
-        categoryTableView.reloadData()
-    }
-}

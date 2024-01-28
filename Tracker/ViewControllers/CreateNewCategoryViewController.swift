@@ -7,8 +7,6 @@
 
 import UIKit
 final class CreateNewCategoryViewController: UIViewController {
-    // MARK: - Delegate:
-    weak var delegate: NewCategoryViewControllerProtocol?
     // MARK: - Private properties:
     private var categoryName: String = ""
     private let categoryStore = TrackerCategoryStore.shared
@@ -97,7 +95,6 @@ final class CreateNewCategoryViewController: UIViewController {
             alertController.addAction(OKAction)
             self.present(alertController, animated: true, completion: nil)
         }
-        delegate?.reloadTable()
         self.dismiss(animated: true)
     }
 }
