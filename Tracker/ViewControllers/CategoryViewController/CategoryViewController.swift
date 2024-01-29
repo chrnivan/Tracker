@@ -9,11 +9,8 @@ import UIKit
 
 final class CategoryViewController: UIViewController {
     //MARK: - Delegate
-    weak var delegate: CategoryViewControllerDelegate?
-    //MARK: - Private Propeties
-    private var categories: [String] = []
-    private var selectedCategory: String = ""
-    private let categoryStore = TrackerCategoryStore.shared
+    var viewModel: CategoryViewModel
+    var viewModelDelegate: CategoryViewControllerDelegate?
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
@@ -56,30 +53,54 @@ final class CategoryViewController: UIViewController {
     }()
     
     private lazy var categoryTableView: UITableView = {
-        var tableView = UITableView(frame: .zero)
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        let tableView = UITableView()
+        tableView.register(CategorySettingsTableViewCell.self, forCellReuseIdentifier: CategorySettingsTableViewCell.identifier)
         tableView.layer.masksToBounds = true
         tableView.layer.cornerRadius = 16
         tableView.separatorStyle = .singleLine
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+        tableView.separatorColor = .ypGray
+        tableView.showsVerticalScrollIndicator = false
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.allowsMultipleSelection = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    
+    init(viewModel: CategoryViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setupConstraints()
         view.backgroundColor = .ypWhite
-        updateCategoriesList()
+        viewModel.delegate = viewModelDelegate
+        bind()
         showOrHideEmptyLabels()
+        
+    }
+    // MARK: - LifeCycle:
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.initSelectedCategory()
     }
     //MARK: - Private Metods
+    private func bind() {
+        viewModel.onChange = { [weak self] in
+            self?.showOrHideEmptyLabels()
+            self?.categoryTableView.reloadData()
+        }
+    }
     private func showOrHideEmptyLabels() {
-        if !categories.isEmpty {
+        if !viewModel.categories.isEmpty {
             stubLabel.isHidden = true
             stubImageView.isHidden = true
             categoryTableView.isHidden = false
@@ -87,14 +108,6 @@ final class CategoryViewController: UIViewController {
             categoryTableView.isHidden = true
             stubLabel.isHidden = false
             stubImageView.isHidden = false
-        }
-    }
-    private func updateCategoriesList() {
-        do {
-            categories = try categoryStore.getListCategoriesCoreData()
-        }
-        catch {
-            //TODO: Alert
         }
     }
     
@@ -140,7 +153,6 @@ final class CategoryViewController: UIViewController {
     //MARK: - Objc Metods
     @objc private func addCategoryButtonClicked() {
         let viewController = CreateNewCategoryViewController()
-        viewController.delegate = self
         self.present(viewController, animated: true)
     }
 }
@@ -148,22 +160,20 @@ final class CategoryViewController: UIViewController {
 //MARK: - UITableViewDataSource
 extension CategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        categories.count
+        return viewModel.categoriesNumber()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: "Cell",
+            withIdentifier: CategorySettingsTableViewCell.identifier,
             for: indexPath)
-                as? UITableViewCell
+                as? CategorySettingsTableViewCell
         else {
             assertionFailure("Не удалось выполнить приведение к UITableViewCell")
             return UITableViewCell()
         }
-        cell.textLabel?.text = categories[indexPath.row]
-        cell.selectionStyle = .none
-        cell.backgroundColor = .ypBackground
-        cell.layer.masksToBounds = true
+        cell.viewModel = viewModel
+        cell.configureCell(indexPath: indexPath)
         return cell
     }
 }
@@ -173,27 +183,18 @@ extension CategoryViewController: UITableViewDelegate {
         75
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let cell = tableView.cellForRow(at: indexPath)
-        if cell?.accessoryView != .none {
-            selectedCategory = ""
-        } else {
-            selectedCategory = cell?.textLabel?.text ?? ""
+        guard let cell = tableView.cellForRow(at: indexPath) as? CategorySettingsTableViewCell else {
+            return
         }
-        delegate?.didSelectCategory(category: selectedCategory)
+        tableView.cellForRow(at: indexPath)?.accessoryType = .none
+        viewModel.setTextLabel(cell: cell)
+        viewModel.didSelectCategory()
         self.dismiss(animated: true)
+    }
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        tableView.cellForRow(at: indexPath)?.accessoryType = .none
+        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }
 
-// MARK: - CategoriesViewControllerProtocol:
-extension CategoryViewController: NewCategoryViewControllerProtocol {
-    func reloadTable() {
-        do {
-            categories = try categoryStore.getListCategoriesCoreData()
-        }
-        catch {
-            //TODO: Alert
-        }
-        showOrHideEmptyLabels()
-        categoryTableView.reloadData()
-    }
-}
+
