@@ -57,6 +57,7 @@
 		E27839FA2B65525F00F0C003 /* FirstSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27839F92B65525F00F0C003 /* FirstSetupViewController.swift */; };
 		E27839FC2B663B6900F0C003 /* CategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27839FB2B663B6900F0C003 /* CategoryViewModel.swift */; };
 		E27839FE2B66406600F0C003 /* ProtocolTrackerCategoryDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27839FD2B66406600F0C003 /* ProtocolTrackerCategoryDelegate.swift */; };
+		E2783A1D2B66A0F400F0C003 /* CategorySettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2783A1C2B66A0F300F0C003 /* CategorySettingsTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -112,6 +113,7 @@
 		E27839F92B65525F00F0C003 /* FirstSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstSetupViewController.swift; sourceTree = "<group>"; };
 		E27839FB2B663B6900F0C003 /* CategoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewModel.swift; sourceTree = "<group>"; };
 		E27839FD2B66406600F0C003 /* ProtocolTrackerCategoryDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolTrackerCategoryDelegate.swift; sourceTree = "<group>"; };
+		E2783A1C2B66A0F300F0C003 /* CategorySettingsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySettingsTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,6 +210,7 @@
 				E207C8872B52E04200A8DDFB /* CategoryViewController.swift */,
 				E27839FB2B663B6900F0C003 /* CategoryViewModel.swift */,
 				E27839A42B62561B00F0C003 /* ProtocolCategoryViewControllerDelegate.swift */,
+				E2783A1C2B66A0F300F0C003 /* CategorySettingsTableViewCell.swift */,
 			);
 			path = CategoryViewController;
 			sourceTree = "<group>";
@@ -416,6 +419,7 @@
 				E26420D92B59425600CE130A /* SettingsHabitOrEventCell.swift in Sources */,
 				E27839502B5E783800F0C003 /* HeaderEmojiCell.swift in Sources */,
 				E27839F62B65393000F0C003 /* FirstScreenOnboardingViewController.swift in Sources */,
+				E2783A1D2B66A0F400F0C003 /* CategorySettingsTableViewCell.swift in Sources */,
 				E27839FA2B65525F00F0C003 /* FirstSetupViewController.swift in Sources */,
 				E207C88D2B544EF200A8DDFB /* SettingsScheduleCell.swift in Sources */,
 				E27839FC2B663B6900F0C003 /* CategoryViewModel.swift in Sources */,

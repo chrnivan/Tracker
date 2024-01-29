@@ -13,6 +13,7 @@ final class NewHabitViewController: UIViewController {
     weak var trackerCreateViewControllerDelegate: TrackerCreateViewControllerDelegate?
     //MARK: - Private Properties
     var selectWeekDays: [Weekday] = []
+    let categoryViewModel = CategoryViewModel()
     internal var selectedCategory: String = ""
     private var configure: Array<SettingOptions> = []
     private let emojis: [String] = [
@@ -319,8 +320,8 @@ extension NewHabitViewController: UITableViewDataSource {
 extension NewHabitViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0{
-            let viewController = CategoryViewController()
-            viewController.delegate = self
+            let viewController = CategoryViewController(viewModel: categoryViewModel)
+            viewController.viewModelDelegate = self
             self.present(viewController, animated: true)
         } else if indexPath.row == 1 {
             let viewController = ScheduleViewController()

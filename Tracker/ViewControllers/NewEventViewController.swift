@@ -10,6 +10,7 @@ import UIKit
 final class NewEventViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: TrackerCreateViewControllerDelegate?
+    let categoryViewModel = CategoryViewModel()
     //MARK: - Private Properties
     private var configure: Array<SettingOptions> = []
     internal var selectedCategory: String = ""
@@ -320,8 +321,8 @@ extension NewEventViewController: UITableViewDataSource {
 extension NewEventViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
-            let viewController = CategoryViewController()
-            viewController.delegate = self
+            let viewController = CategoryViewController(viewModel: categoryViewModel)
+            viewController.viewModelDelegate = self
             self.present(viewController, animated: true)
         }
         tableView.deselectRow(at: indexPath, animated: true)
