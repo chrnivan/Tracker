@@ -10,7 +10,6 @@ import UIKit
 final class NewEventViewController: UIViewController {
     //MARK: - Delegate
     weak var delegate: TrackerCreateViewControllerDelegate?
-    let categoryViewModel = CategoryViewModel()
     //MARK: - Private Properties
     private var configure: Array<SettingOptions> = []
     internal var selectedCategory: String = ""
@@ -28,13 +27,17 @@ final class NewEventViewController: UIViewController {
         .ypColorSelection13, .ypColorSelection14, .ypColorSelection15,
         .ypColorSelection16, .ypColorSelection17, .ypColorSelection18
     ]
-    
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
+    private let categoryViewModel = CategoryViewModel()
+    private var editTracker: Tracker?
+    private let trackerStore = TrackerStore.shared
+    private let categoryStore = TrackerCategoryStore.shared
+    private let recordStore = TrackerRecordStore.shared
     //MARK: - UI
-    private var titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Новое нерегулярное событие"
+        label.text = editTracker == nil ? NSLocalizedString("NewIrregularEvent", comment: "") : NSLocalizedString("HabitEditing", comment: "")
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -46,7 +49,7 @@ final class NewEventViewController: UIViewController {
         var textField = UITextField()
         textField.backgroundColor = .ypBackground
         textField.textColor = .ypBlack
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = NSLocalizedString("EnterNameOfTracker", comment: "")
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         textField.leftViewMode = .always
@@ -81,7 +84,7 @@ final class NewEventViewController: UIViewController {
     
     private var cancelButton: UIButton = {
         var button = UIButton(type: .system)
-        button.setTitle("Отменить", for: .normal)
+        button.setTitle(NSLocalizedString("Undo", comment: ""), for: .normal)
         button.backgroundColor = .ypWhite
         button.tintColor = .ypRed
         button.layer.cornerRadius = 16
@@ -92,9 +95,10 @@ final class NewEventViewController: UIViewController {
         return button
     }()
     
-    private var createButton: UIButton = {
+    private lazy var createButton: UIButton = {
+        let title = editTracker == nil ? NSLocalizedString("Create", comment: "") : NSLocalizedString("Save", comment: "")
         var button = UIButton(type: .system)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle(title, for: .normal)
         button.backgroundColor = .ypGray
         button.tintColor = .ypWhite
         button.layer.cornerRadius = 16
@@ -115,7 +119,7 @@ final class NewEventViewController: UIViewController {
     
     private lazy var restrictionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение 38 символов"
+        label.text = NSLocalizedString("38CharacterLimit", comment: "")
         label.font = .systemFont(ofSize: 17)
         label.textColor = .ypRed
         label.textAlignment = .center
@@ -123,6 +127,18 @@ final class NewEventViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private lazy var completedDaysLabel: UILabel = {
+        let dayCounter = recordStore.records?.filter({ $0.id == editTracker?.id }).count
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 32, weight: .bold)
+        label.textAlignment = .center
+        label.textColor = .ypBlack
+        label.text = "\(dayCounter?.days() ?? 0.days())"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -134,11 +150,11 @@ final class NewEventViewController: UIViewController {
         categoryTableView.delegate = self
         categoryTableView.dataSource = self
         self.addTapGestureToHideKeyboard()
+        counterHidden()
     }
     
     private lazy var emojiCollectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero,
-                                              collectionViewLayout: UICollectionViewFlowLayout())
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.register(EmojiCell.self, forCellWithReuseIdentifier: EmojiCell.identifier)
         collectionView.register(HeaderEmojiCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HeaderEmojiCell.identifier)
         collectionView.dataSource = self
@@ -151,8 +167,7 @@ final class NewEventViewController: UIViewController {
     
     private lazy var colorCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: .zero,
-                                              collectionViewLayout: layout)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(ColorCell.self, forCellWithReuseIdentifier: ColorCell.identifier)
         collectionView.register(HeaderColorCell.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HeaderColorCell.identifier)
         collectionView.dataSource = self
@@ -175,12 +190,18 @@ final class NewEventViewController: UIViewController {
     //MARK: - Private Methods
     private func setupConstraints(){
         scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
+        let top: CGFloat = editTracker != nil ? 116 : 38
         var constraints = [NSLayoutConstraint]()
         
         constraints.append(titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor))
         constraints.append(titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 38))
         
-        constraints.append(scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38))
+        constraints.append(completedDaysLabel.topAnchor.constraint(equalTo: titleLabel.topAnchor, constant: 38))
+        constraints.append(completedDaysLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16))
+        constraints.append(completedDaysLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16))
+        constraints.append(completedDaysLabel.heightAnchor.constraint(equalToConstant: 38))
+        
+        constraints.append(scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: top))
         constraints.append(scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor))
         constraints.append(scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor))
         constraints.append(scrollView.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -5))
@@ -223,6 +244,7 @@ final class NewEventViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(scrollView)
         view.addSubview(buttonStackView)
+        view.addSubview(completedDaysLabel)
         scrollView.addSubview(nameTrackerTextField)
         scrollView.addSubview(restrictionLabel)
         scrollView.addSubview(categoryTableView)
@@ -232,10 +254,22 @@ final class NewEventViewController: UIViewController {
         buttonStackView.addArrangedSubview(createButton)
     }
     
+    private func counterHidden() {
+        if let editingTracker = editTracker {
+            completedDaysLabel.isEnabled = false
+            selectedEmoji = editingTracker.emoji
+            selectedColor = editingTracker.color
+            nameTrackerTextField.text = editingTracker.name
+            didSelectCategory()
+        } else {
+            completedDaysLabel.isHidden = true
+        }
+    }
+    
     private func appendSettingsToArray() {
         configure.append(
             SettingOptions(
-                name: "Категория",
+                name: NSLocalizedString("Category", comment: ""),
                 pickedSettings: nil
             ))
     }
@@ -249,6 +283,46 @@ final class NewEventViewController: UIViewController {
             createButton.backgroundColor = .ypBlack
         }
     }
+    
+    private func getCategoryFromCoreData() {
+        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
+        guard let color = selectedColor, let emoji = selectedEmoji else { return }
+        let tracker = Tracker(id: UUID(),
+                              name: text,
+                              color: color,
+                              emoji: emoji,
+                              schedule: Weekday.allCases,
+                              pinned: false)
+        do {
+            if let categoryCoreData = try categoryStore.fetchTrackerCategoryCoreData(title: selectedCategory) {
+                try trackerStore.addCoreDataTracker(tracker, with: categoryCoreData)
+            }
+        } catch {
+            //TODO: Alert
+        }
+    }
+    
+    private func updateTrackerCoreData() {
+        var categoryCoreData: TrackerCategoryCoreData?
+        do {
+            categoryCoreData = try categoryStore.fetchTrackerCategoryCoreData(title: selectedCategory)
+        } catch {
+            //TODO: Alert
+        }
+        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
+        guard let color = selectedColor, let emoji = selectedEmoji else { return }
+        guard
+            let editTracker,
+            let selectedColor,
+            let categoryCoreData,
+            let selectedEmoji  else { return }
+        let updatedTracker = Tracker(id: editTracker.id, name: text, color: color, emoji: emoji, schedule: Weekday.allCases, pinned: editTracker.pinned)
+        do { 
+            try trackerStore.updateTracker(updatedTracker, with: categoryCoreData)
+        } catch {
+            //TODO: Alert
+        }
+    }
     //MARK: - Objc Methods
     @objc func cancelButtonClicked() {
         self.view.window?.rootViewController?.dismiss(animated: true)
@@ -260,15 +334,12 @@ final class NewEventViewController: UIViewController {
     }
     
     @objc func createButtonClicked() {
-        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
-        guard let colour = selectedColor, let emoji = selectedEmoji else { return }
-        let newTracker = Tracker(id: UUID(),
-                                 name: text,
-                                 color: colour,
-                                 emoji: emoji,
-                                 schedule: Weekday.allCases)
-        self.dismiss(animated: true)
-        delegate?.passingTracker(newTracker, selectedCategory)
+        if editTracker == nil {
+            getCategoryFromCoreData()
+        } else {
+            updateTrackerCoreData()
+        }
+        self.view.window?.rootViewController?.dismiss(animated: true)
     }
     
     @objc private func textFieldDidChange() {

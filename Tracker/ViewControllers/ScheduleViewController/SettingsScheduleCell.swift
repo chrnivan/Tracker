@@ -50,7 +50,7 @@ final class SettingsScheduleCell: UITableViewCell {
     // MARK: - Public Methods:
     func configureCell(with weekDay: Weekday, isLastCell: Bool, isSelected: Bool) {
         self.weekDay = weekDay
-        titleLabel.text = weekDay.rawValue
+        titleLabel.text = weekDay.localizedDay
         separatorView.isHidden = isLastCell
         switchButton.isOn = isSelected
     }

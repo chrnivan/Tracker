@@ -15,7 +15,7 @@ final class ScheduleViewController: UIViewController {
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Расписание"
+        label.text = NSLocalizedString("Schedule", comment: "")
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -25,7 +25,7 @@ final class ScheduleViewController: UIViewController {
     
     private var doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("Done", comment: ""), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.tintColor = .ypWhite
         button.backgroundColor = .ypBlack

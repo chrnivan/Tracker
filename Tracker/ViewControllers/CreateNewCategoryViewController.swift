@@ -4,16 +4,34 @@
 //
 //  Created by Ivan Cherkashin on 13.01.2024.
 //
-
 import UIKit
+
+enum checkTypeHabitOrEvent {
+    case create
+    case edit
+}
+
 final class CreateNewCategoryViewController: UIViewController {
+    //MARK: - Identifier
+    static let identifier = Notification.Name(rawValue: "ChangeCategoryName")
+    // MARK: - Public properties:
+    var editNameCategory: String?
     // MARK: - Private properties:
+    private let eventTypeHabit: checkTypeHabitOrEvent
     private var categoryName: String = ""
     private let categoryStore = TrackerCategoryStore.shared
+    private var categoryTopTitle: String {
+        switch eventTypeHabit {
+        case .create:
+            return NSLocalizedString("NewCategory", comment: "")
+        case .edit:
+            return NSLocalizedString("EditingCategory", comment: "")
+        }
+    }
     //MARK: - UI
-    private var titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Новая категория"
+        label.text = categoryTopTitle
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -23,7 +41,7 @@ final class CreateNewCategoryViewController: UIViewController {
     
     private var doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("Done", comment: ""), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.tintColor = .ypWhite
         button.backgroundColor = .ypBlack
@@ -37,7 +55,7 @@ final class CreateNewCategoryViewController: UIViewController {
         var textField = UITextField()
         textField.backgroundColor = .ypBackground
         textField.textColor = .ypBlack
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = NSLocalizedString("EnterNameOfCategory", comment: "")
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.layer.cornerRadius = 16
         textField.delegate = self
@@ -49,6 +67,14 @@ final class CreateNewCategoryViewController: UIViewController {
         return textField
     }()
     
+    init(eventType: checkTypeHabitOrEvent) {
+        self.eventTypeHabit = eventType
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,6 +83,9 @@ final class CreateNewCategoryViewController: UIViewController {
         setupConstraints()
         checkCorrectness()
         view.backgroundColor = .ypWhite
+        if eventTypeHabit == .edit {
+            nameTrackerTextField.text = editNameCategory
+        }
     }
     //MARK: - Private Methods
     private func setupConstraints() {
@@ -101,17 +130,27 @@ final class CreateNewCategoryViewController: UIViewController {
     
     //MARK: - Objc Metods
     @objc private func doneButtonClicked() {
-        do {
-            try categoryStore.createCategoryCoreData(with: categoryName)
-        } catch {
-            let alertController = UIAlertController(
-                title: "Ошибка",
-                message: "Ошибка при создании новой категории",
-                preferredStyle: .alert)
-            let OKAction = UIAlertAction(title: "OK", style: .default)
-            alertController.addAction(OKAction)
-            self.present(alertController, animated: true, completion: nil)
+        if eventTypeHabit == .create {
+            do {
+                try categoryStore.createCategoryCoreData(with: categoryName)
+            } catch {
+                let alertController = UIAlertController(
+                    title: NSLocalizedString("Error", comment: ""),
+                    message: NSLocalizedString("ErrorCreatingCategory", comment: ""),
+                    preferredStyle: .alert)
+                let OKAction = UIAlertAction(title: "OK", style: .default)
+                alertController.addAction(OKAction)
+                self.present(alertController, animated: true, completion: nil)
+            }
+        } else if eventTypeHabit == .edit {
+            guard let editingCategoryName = editNameCategory else { return }
+            do {
+                try categoryStore.updateCategory(categoryName: editingCategoryName, with: categoryName)
+            } catch {
+                //TODO: Alert
+            }
         }
+        NotificationCenter.default.post(name: CreateNewCategoryViewController.identifier, object: self)
         self.dismiss(animated: true)
     }
     

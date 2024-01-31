@@ -13,7 +13,7 @@ final class CreateTypeTrackerViewController: UIViewController {
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Создание трекера"
+        label.text = NSLocalizedString("TrackerCreation", comment: "")
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -23,7 +23,7 @@ final class CreateTypeTrackerViewController: UIViewController {
     
     private var createHabitButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Привычка", for: .normal)
+        button.setTitle(NSLocalizedString("Habit", comment: ""), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.tintColor = .ypWhite
         button.backgroundColor = .ypBlack
@@ -35,7 +35,7 @@ final class CreateTypeTrackerViewController: UIViewController {
     
     private var createIrregularEvent: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Нерегулярные события", for: .normal)
+        button.setTitle(NSLocalizedString("IrregularEvents", comment: ""), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = .ypBlack
         button.layer.cornerRadius = 16

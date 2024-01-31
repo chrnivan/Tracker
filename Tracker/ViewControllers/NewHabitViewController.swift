@@ -13,7 +13,11 @@ final class NewHabitViewController: UIViewController {
     weak var trackerCreateViewControllerDelegate: TrackerCreateViewControllerDelegate?
     //MARK: - Private Properties
     var selectWeekDays: [Weekday] = []
-    let categoryViewModel = CategoryViewModel()
+    var editTracker: Tracker?
+    private let trackerStore = TrackerStore.shared
+    private let categoryStore = TrackerCategoryStore.shared
+    private let recordStore = TrackerRecordStore.shared
+    private let categoryViewModel = CategoryViewModel()
     internal var selectedCategory: String = ""
     private var configure: Array<SettingOptions> = []
     private let emojis: [String] = [
@@ -34,9 +38,9 @@ final class NewHabitViewController: UIViewController {
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     //MARK: - UI
-    private var titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Новая привычка"
+        label.text = editTracker == nil ? NSLocalizedString("NewHabit", comment: "") : NSLocalizedString("HabitEditing", comment: "")
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -46,7 +50,7 @@ final class NewHabitViewController: UIViewController {
     
     private lazy var restrictionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение 38 символов"
+        label.text = NSLocalizedString("38CharacterLimit", comment: "")
         label.font = .systemFont(ofSize: 17)
         label.textColor = .ypRed
         label.textAlignment = .center
@@ -59,7 +63,7 @@ final class NewHabitViewController: UIViewController {
         var textField = UITextField()
         textField.backgroundColor = .ypBackground
         textField.textColor = .ypBlack
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = NSLocalizedString("EnterNameOfTracker", comment: "")
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.layer.cornerRadius = 16
         textField.delegate = self
@@ -97,7 +101,7 @@ final class NewHabitViewController: UIViewController {
     
     private var cancelButton: UIButton = {
         var button = UIButton(type: .system)
-        button.setTitle("Отменить", for: .normal)
+        button.setTitle(NSLocalizedString("Undo", comment: ""), for: .normal)
         button.backgroundColor = .ypWhite
         button.tintColor = .ypRed
         button.layer.cornerRadius = 16
@@ -108,9 +112,10 @@ final class NewHabitViewController: UIViewController {
         return button
     }()
     
-    private var createButton: UIButton = {
+    private lazy var createButton: UIButton = {
+        let title = editTracker == nil ? NSLocalizedString("Create", comment: "") : NSLocalizedString("Save", comment: "")
         var button = UIButton(type: .system)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle(title, for: .normal)
         button.backgroundColor = .ypGray
         button.tintColor = .ypWhite
         button.layer.cornerRadius = 16
@@ -164,6 +169,17 @@ final class NewHabitViewController: UIViewController {
         scroll.decelerationRate = .init(rawValue: 1)
         return scroll
     }()
+    
+    private lazy var completedDaysLabel: UILabel = {
+        let dayCounter = recordStore.records?.filter({ $0.id == editTracker?.id }).count
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 32, weight: .bold)
+        label.textAlignment = .center
+        label.textColor = .ypBlack
+        label.text = "\(dayCounter?.days() ?? 0.days())"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     //MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -173,17 +189,26 @@ final class NewHabitViewController: UIViewController {
         setupConstraints()
         checkCorrectness()
         self.addTapGestureToHideKeyboard()
+        counterHidden()
     }
     //MARK: - Private Methods
     private func setupConstraints() {
         var constraints = [NSLayoutConstraint]()
+        let top: CGFloat = editTracker != nil ? 116 : 38
         
         scrollView.contentSize = CGSize(width: view.frame.width, height: 730)
         
-        constraints.append(titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor))
         constraints.append(titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 38))
+        constraints.append(titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 68))
+        constraints.append(titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -66))
+        constraints.append(titleLabel.heightAnchor.constraint(equalToConstant: 22))
         
-        constraints.append(scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38))
+        constraints.append(completedDaysLabel.topAnchor.constraint(equalTo: titleLabel.topAnchor, constant: 38))
+        constraints.append(completedDaysLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16))
+        constraints.append(completedDaysLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16))
+        constraints.append(completedDaysLabel.heightAnchor.constraint(equalToConstant: 38))
+        
+        constraints.append(scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: top))
         constraints.append(scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor))
         constraints.append(scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor))
         constraints.append(scrollView.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -5))
@@ -226,6 +251,7 @@ final class NewHabitViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(scrollView)
         view.addSubview(buttonStackView)
+        view.addSubview(completedDaysLabel)
         scrollView.addSubview(nameTrackerTextField)
         scrollView.addSubview(restrictionLabel)
         scrollView.addSubview(categoryOrScheduleTableView)
@@ -234,15 +260,27 @@ final class NewHabitViewController: UIViewController {
         buttonStackView.addArrangedSubview(cancelButton)
         buttonStackView.addArrangedSubview(createButton)
     }
-    
+    private func counterHidden() {
+        if let editingTracker = editTracker {
+            completedDaysLabel.isEnabled = false
+            nameTrackerTextField.text = editingTracker.name
+            selectWeekDays = editingTracker.schedule
+            selectedEmoji = editingTracker.emoji
+            selectedColor = editingTracker.color
+            didSelectDays()
+            didSelectCategory()
+        } else {
+            completedDaysLabel.isHidden = true
+        }
+    }
     private func appendSettingsToArray() {
         configure.append(
             SettingOptions(
-                name: "Категория",
+                name: NSLocalizedString("Category", comment: ""),
                 pickedSettings: nil
             ))
         configure.append(SettingOptions(
-            name: "Расписание",
+            name: NSLocalizedString("Schedule", comment: ""),
             pickedSettings: nil
         ))
     }
@@ -256,6 +294,46 @@ final class NewHabitViewController: UIViewController {
             createButton.backgroundColor = .ypBlack
         }
     }
+    
+    private func getCategoryFromCoreData() {
+        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
+        guard let color = selectedColor, let emoji = selectedEmoji else { return }
+        let tracker = Tracker(id: UUID(),
+                              name: text,
+                              color: color,
+                              emoji: emoji,
+                              schedule: self.selectWeekDays,
+                              pinned: false)
+        do {
+            if let categoryCoreData = try categoryStore.fetchTrackerCategoryCoreData(title: selectedCategory) {
+                try trackerStore.addCoreDataTracker(tracker, with: categoryCoreData)
+            }
+        } catch {
+            ////TODO: Alert
+        }
+    }
+    
+    private func updateTrackerCoreData() {
+        var categoryCoreData: TrackerCategoryCoreData?
+        do {
+            categoryCoreData = try categoryStore.fetchTrackerCategoryCoreData(title: selectedCategory)
+        } catch {
+            //TODO: Alert
+        }
+        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
+        guard let color = selectedColor, let emoji = selectedEmoji else { return }
+        guard
+            let editTracker,
+            let selectedColor,
+            let categoryCoreData,
+            let selectedEmoji  else { return }
+        let updatedTracker = Tracker(id: editTracker.id, name: text, color: color, emoji: emoji, schedule: self.selectWeekDays, pinned: editTracker.pinned)
+        do {
+            try trackerStore.updateTracker(updatedTracker, with: categoryCoreData)
+        } catch {
+            //TODO: Alert
+        }
+    }
     //MARK: - Objc Methods
     @objc func cancelButtonClicked() {
         self.view.window?.rootViewController?.dismiss(animated: true)
@@ -267,17 +345,13 @@ final class NewHabitViewController: UIViewController {
     }
     
     @objc func createButtonClicked() {
-        guard let text = nameTrackerTextField.text, !text.isEmpty else { return }
-        guard let colour = selectedColor, let emoji = selectedEmoji else { return }
-        let newTracker = Tracker(id: UUID(),
-                                 name: text,
-                                 color: colour,
-                                 emoji: emoji,
-                                 schedule: self.selectWeekDays)
-        self.dismiss(animated: true)
-        trackerCreateViewControllerDelegate?.passingTracker(newTracker, selectedCategory)
+        if editTracker == nil {
+            getCategoryFromCoreData()
+        } else {
+            updateTrackerCoreData()
+        }
+        self.view.window?.rootViewController?.dismiss(animated: true)
     }
-    
     @objc private func textFieldDidChange() {
         if let text = nameTrackerTextField.text, !text.isEmpty {
             clearTextFieldButton.isHidden = false

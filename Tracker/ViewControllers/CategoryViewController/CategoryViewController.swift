@@ -9,12 +9,15 @@ import UIKit
 
 final class CategoryViewController: UIViewController {
     //MARK: - Delegate
-    var viewModel: CategoryViewModel
     var viewModelDelegate: CategoryViewControllerDelegate?
+    //MARK: - Public Properties
+    var viewModel: CategoryViewModel
+    //MARK: - Private Properties
+    private var alertPresenter: AlertPresenterProtocol?
     //MARK: - UI
     private var titleLabel: UILabel = {
         var label = UILabel()
-        label.text = "Категория"
+        label.text = NSLocalizedString("Category", comment: "")
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .ypBlack
         label.textAlignment = .center
@@ -24,7 +27,7 @@ final class CategoryViewController: UIViewController {
     
     private var addCategoryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
+        button.setTitle(NSLocalizedString("AddCategory", comment: ""), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.tintColor = .ypWhite
         button.backgroundColor = .ypBlack
@@ -43,7 +46,7 @@ final class CategoryViewController: UIViewController {
     
     private lazy var stubLabel: UILabel = {
         let label = UILabel()
-        label.text = "Привычки и события можно \nобъединить по смыслу"
+        label.text = NSLocalizedString("StubLabelHabitsAndEvents", comment: "")
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.numberOfLines = 2
         label.textAlignment = .center
@@ -83,6 +86,7 @@ final class CategoryViewController: UIViewController {
         setupConstraints()
         view.backgroundColor = .ypWhite
         viewModel.delegate = viewModelDelegate
+        alertPresenter = AlertPresenter(delegate: self)
         bind()
         showOrHideEmptyLabels()
         
@@ -150,9 +154,22 @@ final class CategoryViewController: UIViewController {
         view.addSubview(stubLabel)
         view.addSubview(categoryTableView)
     }
+    
+    private func showAlert(for category: String) {
+        let alertModel = AlertModel(
+            title: NSLocalizedString("CategoryNotNeeded", comment: ""),
+            message: NSLocalizedString("TrackersWillAlsoDeleted", comment: ""),
+            firstText: NSLocalizedString("Delete", comment: ""),
+            secondText: NSLocalizedString("Undo", comment: "")) { [weak self] in
+                guard let self = self else { return }
+                viewModel.deleteCategory(category)
+            }
+        alertPresenter?.showAlert(model: alertModel)
+    }
+    
     //MARK: - Objc Metods
     @objc private func addCategoryButtonClicked() {
-        let viewController = CreateNewCategoryViewController()
+        let viewController = CreateNewCategoryViewController(eventType: .create)
         self.present(viewController, animated: true)
     }
 }
@@ -182,6 +199,7 @@ extension CategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         75
     }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let cell = tableView.cellForRow(at: indexPath) as? CategorySettingsTableViewCell else {
             return
@@ -191,9 +209,35 @@ extension CategoryViewController: UITableViewDelegate {
         viewModel.didSelectCategory()
         self.dismiss(animated: true)
     }
+    
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         tableView.cellForRow(at: indexPath)?.accessoryType = .none
         tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { actions in
+            guard let cell = tableView.cellForRow(at: indexPath) as? CategorySettingsTableViewCell else {
+                return UIMenu()
+            }
+            
+            let editAction = UIAction(title: NSLocalizedString("Edit", comment: "")) { [weak self] action in
+                guard let self = self else { return }
+                let editNameCategory = cell.textLabel?.text
+                let viewController = CreateNewCategoryViewController(eventType: .edit)
+                viewController.editNameCategory = editNameCategory
+                self.present(viewController, animated: true)
+            }
+            
+            let deleteAction = UIAction(title: NSLocalizedString("Delete", comment: ""), attributes: .destructive) { [weak self] action in
+                guard let self = self else { return }
+                let deleteCategory = cell.textLabel?.text
+                guard let categoryToDelete = deleteCategory else { return }
+                self.showAlert(for: categoryToDelete)
+            }
+            return UIMenu(children: [editAction, deleteAction])
+        }
+        return configuration
     }
 }
 

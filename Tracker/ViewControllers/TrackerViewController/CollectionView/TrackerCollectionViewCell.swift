@@ -18,6 +18,13 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private var trackerIdentifer: UUID? = nil
     private var isCompleted: Bool = false
     private var indexPath: IndexPath?
+    var isPinned: Bool = false
+    public var preview: UIView {
+        return trackerView
+    }
+    public var id: UUID? {
+        return trackerIdentifer ?? nil
+    }
     //MARK: - UI:
     private lazy var trackerView: UIView = {
         var view = UIView()
@@ -29,7 +36,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     
     private lazy var dayAndButtonView: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        view.backgroundColor = .clear
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -37,7 +44,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private lazy var dayLabel: UILabel = {
         var label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .black
+        label.textColor = .ypBlack
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -57,7 +64,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
     private lazy var emojiLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.backgroundColor = .ypBackground
+        label.backgroundColor = .ypBackEmoji
         label.font = .systemFont(ofSize: 16)
         label.layer.masksToBounds = true
         label.layer.cornerRadius = 14
@@ -74,6 +81,15 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    private lazy var pinnedImageView: UIImageView = {
+        let pinnedImage = UIImage(named: "pin")
+        let imageView = UIImageView(image: pinnedImage)
+        imageView.layer.backgroundColor = UIColor.clear.cgColor
+        imageView.tintColor = .white
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
     // MARK: - Initializers
     override init(frame: CGRect) {
@@ -92,18 +108,24 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
                       emoji: String,
                       completedDays: Int,
                       isEnabled: Bool,
-                      isCompleted: Bool) {
+                      isCompleted: Bool,
+                      isPinned: Bool) {
+        let dayString = NSLocalizedString("numberDays", comment: "")
+        let localizedDay = String.localizedStringWithFormat(dayString, completedDays)
         self.trackerIdentifer = id
         self.textTrackerLabel.text = name
         self.trackerView.backgroundColor = color
         self.plusButton.backgroundColor = color
         self.emojiLabel.text = emoji
-        self.dayLabel.text = "\(completedDays.days())"
+        self.dayLabel.text = localizedDay
         self.plusButton.isEnabled = isEnabled
         self.isCompleted = isCompleted
+        self.isPinned = isPinned
         let image = isCompleted ? doneButtonImage : plusButtonImage
         plusButton.setImage(image, for: .normal)
         plusButton.alpha = isCompleted ? 0.3 : 1
+        
+        pinnedImageView.isHidden = !isPinned
     }
     // MARK: - Private Methods:
     private func configureCell() {
@@ -111,6 +133,7 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(dayAndButtonView)
         trackerView.addSubview(emojiLabel)
         trackerView.addSubview(textTrackerLabel)
+        trackerView.addSubview(pinnedImageView)
         dayAndButtonView.addSubview(dayLabel)
         dayAndButtonView.addSubview(plusButton)
     }
@@ -130,6 +153,11 @@ final class TrackerCollectionViewCell: UICollectionViewCell {
             textTrackerLabel.leadingAnchor.constraint(equalTo: trackerView.leadingAnchor, constant: 12),
             textTrackerLabel.trailingAnchor.constraint(equalTo: trackerView.trailingAnchor, constant: -12),
             textTrackerLabel.bottomAnchor.constraint(equalTo: trackerView.bottomAnchor, constant: -12),
+            
+            pinnedImageView.trailingAnchor.constraint(equalTo: trackerView.trailingAnchor, constant: -4),
+            pinnedImageView.topAnchor.constraint(equalTo: trackerView.topAnchor, constant: 12),
+            pinnedImageView.widthAnchor.constraint(equalToConstant: 24),
+            pinnedImageView.heightAnchor.constraint(equalToConstant: 24),
             
             dayAndButtonView.topAnchor.constraint(equalTo: trackerView.bottomAnchor),
             dayAndButtonView.widthAnchor.constraint(equalToConstant: 167),

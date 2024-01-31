@@ -29,7 +29,7 @@ final class OnboardingPageViewController: UIPageViewController {
         let button  = UIButton(type: .system)
         button.backgroundColor = .ypBlack
         button.tintColor = .ypWhite
-        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitle(NSLocalizedString("Technologies", comment: ""), for: .normal)
         button.layer.masksToBounds = true
         button.layer.cornerRadius = 16
         button.addTarget(self, action: #selector(skipButtonClicked), for: .touchUpInside)

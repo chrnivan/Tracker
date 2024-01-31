@@ -23,7 +23,7 @@ final class SecondScreenOnboardingViewController: UIViewController {
         label.font = .systemFont(ofSize: 32, weight: .bold)
         label.numberOfLines = 2
         label.textAlignment = .center
-        label.text = "Даже если это \nне литры воды и йога"
+        label.text = NSLocalizedString("EvenNotLiters", comment: "")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

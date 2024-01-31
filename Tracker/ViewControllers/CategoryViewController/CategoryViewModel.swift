@@ -16,6 +16,8 @@ final class CategoryViewModel: NSObject {
     //MARK: - Private Properties
     private var selectedCategory: String = ""
     private let categoryStore = TrackerCategoryStore.shared
+    private let trackerStore = TrackerStore.shared
+    private let recordStore = TrackerRecordStore.shared
     private(set) var categories: [TrackerCategory] = [] {
         didSet {
             onChange?()
@@ -37,11 +39,38 @@ final class CategoryViewModel: NSObject {
     func initSelectedCategory() {
         selectedCategory = delegate?.selectedCategory ?? ""
     }
+    
     func checkTextSelectedCategory(cell: UITableViewCell) -> Bool {
         if selectedCategory == cell.textLabel?.text ?? "" {
             return true
         } else {
             return false
+        }
+    }
+    
+    func deleteCategory(_ title: String) {
+        guard let trackers = categories.first(where: { $0.headerName == title })?.trackerArray else {
+            return
+        }
+        do { 
+            try trackers.forEach({ try trackerStore.deleteTracker($0) })
+        } catch {
+            //TODO: ALERT
+        }
+        do {
+           try trackers.forEach { try recordStore.deleteRecordFromCoreData($0.id) }
+        } catch {
+            //TODO: ALERT
+        }
+        
+        if let categoryToDelete = try? categoryStore.fetchTrackerCategoryCoreData(title: title) {
+            do {  
+                try categoryStore.deleteCategory(categoryToDelete)
+            } catch {
+                //TODO: ALERT
+            }
+        } else {
+            return
         }
     }
     // MARK: - Initializers

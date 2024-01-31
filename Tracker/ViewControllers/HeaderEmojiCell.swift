@@ -15,7 +15,7 @@ final class HeaderEmojiCell: UICollectionReusableView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = .ypBlack
-        label.text = "Emoji"
+        label.text = NSLocalizedString("Emoji", comment: "")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

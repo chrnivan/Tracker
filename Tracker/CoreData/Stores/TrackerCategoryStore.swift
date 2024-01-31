@@ -109,6 +109,24 @@ final class TrackerCategoryStore: NSObject {
         guard let categories = list else { fatalError("\(TrackerCategoryStoreError.failedCreateRequest)")}
         return categories
     }
+    
+    func updateCategory(categoryName: String, with newName: String) throws {
+        guard let categoryToUpdate = categoryFetchedResultsController?.fetchedObjects?.first(where: {
+            $0.name == categoryName
+        }) else {
+            return
+        }
+        categoryToUpdate.name = newName
+        try saveContext()
+    }
+    
+    func deleteCategory(_ model: TrackerCategoryCoreData) throws {
+        guard let object = categoryFetchedResultsController?.fetchedObjects?.first(where: { $0.name == model.name }) else {
+            return
+        }
+        categoryFetchedResultsController?.managedObjectContext.delete(object)
+        try saveContext()
+    }
     // MARK: - Private Methods
     private func saveContext() throws {
         guard context.hasChanges else { return }

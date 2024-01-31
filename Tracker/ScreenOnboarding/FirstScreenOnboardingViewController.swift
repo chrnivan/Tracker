@@ -23,7 +23,7 @@ final class FirstScreenOnboardingViewController: UIViewController {
         label.font = .systemFont(ofSize: 32, weight: .bold)
         label.numberOfLines = 2
         label.textAlignment = .center
-        label.text = "Отслеживайте только \nто, что хотите"
+        label.text = NSLocalizedString("TrackOnlyWant", comment: "")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

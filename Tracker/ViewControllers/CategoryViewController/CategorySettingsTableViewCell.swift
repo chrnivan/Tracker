@@ -27,6 +27,7 @@ final class CategorySettingsTableViewCell: UITableViewCell {
         layer.masksToBounds = true
         textLabel?.text = viewModel.categories[indexPath.row].headerName
         if viewModel.categoriesNumber() == 1 {
+            layer.cornerRadius = 16
             separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 1000)
             layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
             

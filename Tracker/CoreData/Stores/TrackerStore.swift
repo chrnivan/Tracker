@@ -67,6 +67,8 @@ final class TrackerStore: NSObject  {
         trackerCoreData.emoji = tracker.emoji
         trackerCoreData.schedule = tracker.schedule as NSObject
         trackerCoreData.category = category
+        trackerCoreData.record = []
+        trackerCoreData.pinned = tracker.pinned
         try saveContext()
     }
     
@@ -80,13 +82,14 @@ final class TrackerStore: NSObject  {
             throw TrackerStoreError.decodingErrorInvalidModel
         }
         let color = uiColorMarshalling.color(from: colorString)
-        
+        let pinned = modelCoreData.pinned
         return Tracker(
             id: id,
             name: name,
             color: color,
             emoji: emoji,
-            schedule: schedule)
+            schedule: schedule,
+            pinned: pinned)
     }
     
     func trackerUpdate(_ record: TrackerRecord) throws {
@@ -100,6 +103,48 @@ final class TrackerStore: NSObject  {
             trackerCoreData.addToRecord(newRecord)
             try saveContext()
         }
+    }
+    
+    func pinnedTrackerCoreData(_ tracker: Tracker) throws {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCoreData.identifer), tracker.id as CVarArg)
+        
+        guard let trackerCoreData = try? context.fetch(request) else {
+            return
+        }
+        if let trackerPinned = trackerCoreData.first {
+            if trackerPinned.pinned == false {
+                trackerPinned.pinned = true
+            } else if trackerPinned.pinned == true {
+                trackerPinned.pinned = false
+            }
+            try saveContext()
+        }
+    }
+    
+    func deleteTracker(_ model: Tracker) throws {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCoreData.identifer), model.id as CVarArg)
+        guard let trackers = try? context.fetch(request) else {
+            return
+        }
+        if let tracker = trackers.first {
+            context.delete(tracker)
+            try saveContext()
+        }
+    }
+    
+    func updateTracker(_ updatedTracker: Tracker, with category: TrackerCategoryCoreData) throws {
+        guard let trackerToUpdate = trackersFetchedResultsController?.fetchedObjects?.first(where: { $0.identifer == updatedTracker.id }) else {
+            return
+        }
+        trackerToUpdate.name = updatedTracker.name
+        trackerToUpdate.category = category
+        trackerToUpdate.schedule = updatedTracker.schedule as NSObject
+        trackerToUpdate.emoji = updatedTracker.emoji
+        trackerToUpdate.color = uiColorMarshalling.hexString(from: updatedTracker.color)
+        
+        try saveContext()
     }
     // MARK: - Private Methods
     private func saveContext() throws {

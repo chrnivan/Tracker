@@ -15,7 +15,7 @@ final class HeaderColorCell: UICollectionReusableView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = .ypBlack
-        label.text = "Цвет"
+        label.text = NSLocalizedString("Color", comment: "")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
